@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 type UnsplashResponse = {
   urls: {
@@ -19,14 +20,15 @@ export default async function Page() {
   const updateSearch = async (e: FormData) => {
     "use server";
 
-    const search = e.get("search");
-    revalidatePath(
-      "/search/" +
-        search
-          ?.toString()
-          .toLowerCase()
-          .replace(/\s{2,}/gm, "")
-    );
+    const search = e
+      .get("search")
+      ?.toString()
+      .toLowerCase()
+      .replace(/\s{2,}/gm, "");
+
+    revalidatePath("/search/" + search);
+
+    redirect("/search/" + search);
   };
 
   const groupImages = (json: UnsplashResponse[]): string[][] => {

@@ -1,4 +1,12 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+
+type UnsplashResponse = {
+  urls: {
+    full: string;
+  };
+};
 
 export default async function Page(props: { params: { item: string } }) {
   const { item } = props.params;
@@ -23,6 +31,24 @@ export default async function Page(props: { params: { item: string } }) {
           .toLowerCase()
           .replace(/\s{2,}/gm, "")
     );
+
+    redirect("/search/" + search);
+  };
+
+  const groupImages = (json: UnsplashResponse[]): string[][] => {
+    let group = [];
+    const images: string[][] = [];
+
+    for (let i = 0; i < json.length; i++) {
+      group.push(json[i]?.urls?.full);
+
+      if ((i + 1) % 3 == 0 && i != 0) {
+        images.push(group);
+        group = [];
+      }
+    }
+
+    return images;
   };
 
   return (
@@ -39,98 +65,19 @@ export default async function Page(props: { params: { item: string } }) {
         </form>
       </div>
       <div className="grid w-full grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[0].urls["full"]}
-              alt=""
-            />
+        {groupImages(json.results).map((group, _) => (
+          <div className="grid gap-4" key={`group_${_}`}>
+            {group.map((src: string, idx: number) => (
+              <div key={`image_${idx}`}>
+                <img
+                  className="h-auto max-w-full rounded-lg"
+                  src={src}
+                  alt=""
+                />
+              </div>
+            ))}
           </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[1].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[2].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[3].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[4].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[5].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[6].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[7].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[8].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[9].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[10].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json.results[11].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
+        ))}
       </div>
     </main>
   );
