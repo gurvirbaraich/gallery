@@ -1,5 +1,11 @@
 import { revalidatePath } from "next/cache";
 
+type UnsplashResponse = {
+  urls: {
+    full: string;
+  };
+};
+
 export default async function Page() {
   const photos = await fetch(
     "https://api.unsplash.com/photos?client_id=a4jE-bkPYmqenDgoR_oLT9NmjYtbjNaG8f54XKf7r-I&page=1&per_page=12",
@@ -9,8 +15,6 @@ export default async function Page() {
   );
 
   const json = await photos.json();
-
-  console.log(json);
 
   const updateSearch = async (e: FormData) => {
     "use server";
@@ -23,6 +27,22 @@ export default async function Page() {
           .toLowerCase()
           .replace(/\s{2,}/gm, "")
     );
+  };
+
+  const groupImages = (json: UnsplashResponse[]): string[][] => {
+    let group = [];
+    const images: string[][] = [];
+
+    for (let i = 0; i < json.length; i++) {
+      group.push(json[i]?.urls?.full);
+
+      if ((i + 1) % 3 == 0 && i != 0) {
+        images.push(group);
+        group = [];
+      }
+    }
+
+    return images;
   };
 
   return (
@@ -38,98 +58,19 @@ export default async function Page() {
         </form>
       </div>
       <div className="grid w-full grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[0].urls["full"]}
-              alt=""
-            />
+        {groupImages(json).map((group, _) => (
+          <div className="grid gap-4" key={`group_${_}`}>
+            {group.map((src: string, idx: number) => (
+              <div key={`image_${idx}`}>
+                <img
+                  className="h-auto max-w-full rounded-lg"
+                  src={src}
+                  alt=""
+                />
+              </div>
+            ))}
           </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[1].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[2].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[3].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[4].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[5].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[6].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[7].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[8].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[9].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[10].urls["full"]}
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              className="h-auto max-w-full rounded-lg"
-              src={json[11].urls["full"]}
-              alt=""
-            />
-          </div>
-        </div>
+        ))}
       </div>
     </main>
   );
